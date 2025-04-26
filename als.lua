@@ -1,32 +1,10 @@
 repeat wait() until game:IsLoaded()
-local TARGET_WAVE = 101
-local CHECK_INTERVAL = 1
-local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local player = Players.LocalPlayer
-local waveLabel = player.PlayerGui.MainUI.Top.Wave.Value
-local sellRemote = ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("UnitManager"):WaitForChild("SellAll")
-
-local function getCurrentWave()
-    local waveText = waveLabel.Text
-    local waveNumber = tonumber(waveText:match("%d+"))
-    return waveNumber or 0
-end
-
-while true do
-    local currentWave = getCurrentWave()
-    if currentWave == TARGET_WAVE then
-        sellRemote:FireServer()
-        print("Auto-sold all units on wave", TARGET_WAVE)
-        break
-    end
-    wait(CHECK_INTERVAL)
-end
-
+local player = game.Players.LocalPlayer
 local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
 gui.Name = "TeleportTimerGUI"
 gui.ResetOnSpawn = false
 
+-- Main 
 local main = Instance.new("Frame")
 main.Size = UDim2.new(0, 280, 0, 160)  
 main.Position = UDim2.new(0.5, -140, 0.5, -80) 
@@ -39,6 +17,7 @@ main.Parent = gui
 
 Instance.new("UICorner", main).CornerRadius = UDim.new(0, 12)
 
+
 local title = Instance.new("TextLabel", main)
 title.Size = UDim2.new(1, 0, 0, 35)  
 title.BackgroundTransparency = 1
@@ -48,6 +27,7 @@ title.Font = Enum.Font.GothamBold
 title.TextSize = 20
 title.TextStrokeTransparency = 0.8
 title.TextYAlignment = Enum.TextYAlignment.Center
+
 
 local timeLabel = Instance.new("TextLabel", main)
 timeLabel.Position = UDim2.new(0.5, -50, 0, 60)  
@@ -59,6 +39,7 @@ timeLabel.Font = Enum.Font.Gotham
 timeLabel.TextSize = 16  
 timeLabel.TextStrokeTransparency = 0.8
 timeLabel.TextYAlignment = Enum.TextYAlignment.Center
+
 
 local sliderBG = Instance.new("Frame", main)
 sliderBG.Position = UDim2.new(0.5, -110, 0, 90)  
@@ -81,15 +62,16 @@ Instance.new("UICorner", knob).CornerRadius = UDim.new(1, 0)
 local credit = Instance.new("TextLabel", main)
 credit.Size = UDim2.new(1, -10, 0, 15)
 credit.Position = UDim2.new(0, 5, 1, -15)  
-credit.Text = "made by: ayanokoji"
+credit.Text = "made by: vxq"
 credit.Font = Enum.Font.Gotham
 credit.TextColor3 = Color3.fromRGB(100, 100, 100)
-credit.TextSize = 10
+credit.TextSize = 10  -- Reduced text size
 credit.BackgroundTransparency = 1
 credit.TextXAlignment = Enum.TextXAlignment.Right
 
+
 local running = false
-local selectedTime = 3640
+local selectedTime = 3600
 
 local function updateSliderPosition(timeLeft)
     local percentLeft = timeLeft / selectedTime
@@ -97,8 +79,11 @@ local function updateSliderPosition(timeLeft)
     knob.Position = UDim2.new(0, knobPos - knob.AbsoluteSize.X / 2, knob.Position.Y.Scale, knob.Position.Y.Offset)
 end
 
+
 local function startCountdown()
     running = true
+
+
     sliderBG.Active = false
     knob.Active = false
 
@@ -109,6 +94,8 @@ local function startCountdown()
     end
 
     game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("RestartMatch"):FireServer()
+
+
     timeLabel.Text = "Time: " .. selectedTime .. "s"
     sliderBG.Active = true
     knob.Active = true
