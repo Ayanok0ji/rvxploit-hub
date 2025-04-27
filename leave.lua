@@ -31,7 +31,7 @@ end
 while true do
     local currentWave = getCurrentWave()
     
-    print("[Wave Checker] Current wave:", currentWave)
+    --print("[Wave Checker] Current wave:", currentWave)
     
     if currentWave == TARGET_WAVE then
         pcall(function()
