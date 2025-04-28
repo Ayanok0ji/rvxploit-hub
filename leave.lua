@@ -31,16 +31,16 @@ end
 while true do
     local currentWave = getCurrentWave()
     
-    --print("[Wave Checker] Current wave:", currentWave)
+    -- print("[Wave Checker] Current wave:", currentWave)
     
     if currentWave == TARGET_WAVE then
         pcall(function()
             sellRemote:FireServer()
-            print("[Auto-Sell] Sold all units on wave", TARGET_WAVE)
+            -- print("[Auto-Sell] Sold all units on wave", TARGET_WAVE)
             wait(5)
         end)
     elseif currentWave > MAX_MISSED_WAVE then
-        print("[Warning] Overshot target wave, current:", currentWave)
+        -- print("[Warning] Overshot target wave, current:", currentWave)
     end
     
     wait(CHECK_INTERVAL)
