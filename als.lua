@@ -71,7 +71,7 @@ credit.TextXAlignment = Enum.TextXAlignment.Right
 
 
 local running = false
-local selectedTime = 3550
+local selectedTime = 3400
 
 local function updateSliderPosition(timeLeft)
     local percentLeft = timeLeft / selectedTime
