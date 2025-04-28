@@ -1,105 +1,72 @@
 repeat wait() until game:IsLoaded()
 local player = game.Players.LocalPlayer
-local gui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
-gui.Name = "TeleportTimerGUI"
-gui.ResetOnSpawn = false
+local matchCounter = 0
+local previousState = false
 
--- Main 
-local main = Instance.new("Frame")
-main.Size = UDim2.new(0, 280, 0, 160)  
-main.Position = UDim2.new(0.5, -140, 0.5, -80) 
-main.AnchorPoint = Vector2.new(0.5, 0.5)
-main.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-main.BorderSizePixel = 0
-main.Active = true
-main.Draggable = true
-main.Parent = gui
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "MatchTracker"
+screenGui.ResetOnSpawn = false 
+screenGui.Parent = player.PlayerGui
 
-Instance.new("UICorner", main).CornerRadius = UDim.new(0, 12)
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 200, 0, 80)
+frame.Position = UDim2.new(0.5, -100, 0, 10)
+frame.AnchorPoint = Vector2.new(0.5, 0)
+frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+frame.BackgroundTransparency = 0.5
+frame.BorderSizePixel = 0
+frame.Parent = screenGui
 
-
-local title = Instance.new("TextLabel", main)
-title.Size = UDim2.new(1, 0, 0, 35)  
+local title = Instance.new("TextLabel")
+title.Text = "Match Progress"
+title.Size = UDim2.new(1, 0, 0, 30)
+title.Position = UDim2.new(0, 0, 0, 0)
 title.BackgroundTransparency = 1
-title.Text = "Restart Match Timer"
 title.TextColor3 = Color3.fromRGB(255, 255, 255)
-title.Font = Enum.Font.GothamBold
-title.TextSize = 20
-title.TextStrokeTransparency = 0.8
-title.TextYAlignment = Enum.TextYAlignment.Center
+title.Font = Enum.Font.SourceSansBold
+title.TextSize = 18
+title.Parent = frame
 
+local counter = Instance.new("TextLabel")
+counter.Text = "Completed: 0/4"
+counter.Size = UDim2.new(1, 0, 0, 25)
+counter.Position = UDim2.new(0, 0, 0, 30)
+counter.BackgroundTransparency = 1
+counter.TextColor3 = Color3.fromRGB(255, 255, 255)
+counter.Font = Enum.Font.SourceSans
+counter.TextSize = 16
+counter.Parent = frame
 
-local timeLabel = Instance.new("TextLabel", main)
-timeLabel.Position = UDim2.new(0.5, -50, 0, 60)  
-timeLabel.Size = UDim2.new(0, 100, 0, 25) 
-timeLabel.BackgroundTransparency = 1
-timeLabel.Text = "Time: 3530s"
-timeLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-timeLabel.Font = Enum.Font.Gotham
-timeLabel.TextSize = 16  
-timeLabel.TextStrokeTransparency = 0.8
-timeLabel.TextYAlignment = Enum.TextYAlignment.Center
+local status = Instance.new("TextLabel")
+status.Text = "Status: In Match"
+status.Size = UDim2.new(1, 0, 0, 25)
+status.Position = UDim2.new(0, 0, 0, 55)
+status.BackgroundTransparency = 1
+status.TextColor3 = Color3.fromRGB(255, 255, 255)
+status.Font = Enum.Font.SourceSans
+status.TextSize = 16
+status.Parent = frame
 
-
-local sliderBG = Instance.new("Frame", main)
-sliderBG.Position = UDim2.new(0.5, -110, 0, 90)  
-sliderBG.Size = UDim2.new(0, 220, 0, 5)  
-sliderBG.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
-sliderBG.BorderSizePixel = 0
-sliderBG.Name = "SliderBG"
-
-Instance.new("UICorner", sliderBG).CornerRadius = UDim.new(0, 3)
-
-local knob = Instance.new("Frame", sliderBG)
-knob.Size = UDim2.new(0, 10, 0, 20)  
-knob.Position = UDim2.new(0, 0, 0.5, -10)
-knob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-knob.BorderSizePixel = 0
-knob.Name = "Knob"
-
-Instance.new("UICorner", knob).CornerRadius = UDim.new(1, 0)
-
-local credit = Instance.new("TextLabel", main)
-credit.Size = UDim2.new(1, -10, 0, 15)
-credit.Position = UDim2.new(0, 5, 1, -15)  
-credit.Text = "made by: vxq"
-credit.Font = Enum.Font.Gotham
-credit.TextColor3 = Color3.fromRGB(100, 100, 100)
-credit.TextSize = 10  -- Reduced text size
-credit.BackgroundTransparency = 1
-credit.TextXAlignment = Enum.TextXAlignment.Right
-
-
-local running = false
-local selectedTime = 3450
-
-local function updateSliderPosition(timeLeft)
-    local percentLeft = timeLeft / selectedTime
-    local knobPos = (1 - percentLeft) * sliderBG.AbsoluteSize.X
-    knob.Position = UDim2.new(0, knobPos - knob.AbsoluteSize.X / 2, knob.Position.Y.Scale, knob.Position.Y.Offset)
+local function GameEnded()
+    local endGameUI = player.PlayerGui:FindFirstChild("EndGameUI")
+    return endGameUI ~= nil
 end
 
+while matchCounter < 4 do
+    task.wait(0.2)
+    
+    local currentState = GameEnded()
 
-local function startCountdown()
-    running = true
-
-
-    sliderBG.Active = false
-    knob.Active = false
-
-    for i = selectedTime, 0, -1 do
-        timeLabel.Text = "Time: " .. i .. "s"
-        updateSliderPosition(i)  
-        task.wait(1)
+    if currentState and not previousState then
+        matchCounter = matchCounter + 1
+        counter.Text = "Completed: "..matchCounter.."/4"
     end
 
-    game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("RestartMatch"):FireServer()
-
-
-    timeLabel.Text = "Time: " .. selectedTime .. "s"
-    sliderBG.Active = true
-    knob.Active = true
-    running = false
+    previousState = currentState
 end
 
-startCountdown()
+status.Text = "Status: Restarting..."
+task.wait(6)
+game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("RestartMatch"):FireServer()
+
+screenGui:Destroy()
