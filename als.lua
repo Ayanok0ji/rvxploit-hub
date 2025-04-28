@@ -52,7 +52,7 @@ local function GameEnded()
     return endGameUI ~= nil
 end
 
-while matchCounter < 5 do
+while matchCounter < 4 do
     task.wait(0.2)
     
     local currentState = GameEnded()
