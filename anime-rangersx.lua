@@ -22,7 +22,7 @@ task.spawn(function()
 end)
 
 task.spawn(function()
-    task.wait(5)
+    task.wait(0.5)
     
     -- print("start")
     
