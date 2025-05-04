@@ -10,7 +10,7 @@ local function deployUnit(unitName)
     
     if unitData then
         deploymentRemote:FireServer(unitData)
-        print("Deployed:", unitName)
+        -- print("Deployed:", unitName)
     else
         warn("Unit data not found for:", unitName)
     end
@@ -25,7 +25,7 @@ end)
 
 task.spawn(function()
     task.wait(2)
-    print("Starting carrot level detection...")
+    -- print("Starting carrot level detection...")
 
     local success, errorMsg = pcall(function()
         while true do
@@ -36,19 +36,19 @@ task.spawn(function()
                     local levelValue = carrotUnit.Upgrade_Folder:FindFirstChild("Level")
                     
                     if levelValue and tonumber(levelValue.Value) >= 5 then
-                        print("Carrot is level 5 - Deploying!")
+                        -- print("Carrot is level 5 - Deploying!")
                         deployUnit("Carrot:Evo")
                         task.wait(1)
                     else
                         if levelValue then
-                            print("Current carrot level:", levelValue.Value)
+                            -- print("Current carrot level:", levelValue.Value)
                         end
                     end
                 else
-                    print("Waiting for Carrot:Evo unit to exist...")
+                    -- print("Waiting for Carrot:Evo unit to exist...")
                 end
             else
-                print("Waiting for UnitsFolder...")
+                -- print("Waiting for UnitsFolder...")
             end
             
             task.wait(0.1)
