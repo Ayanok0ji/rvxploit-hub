@@ -24,7 +24,7 @@ end)
 task.spawn(function()
     task.wait(0.5)
     
-    -- print("start")
+    print("start")
     
     local success, errorMsg = pcall(function()
         local hud = player:WaitForChild("PlayerGui", 9e9):WaitForChild("HUD", 9e9)
@@ -38,7 +38,7 @@ task.spawn(function()
             -- print("lvl value:", currentText)
           
             if string.find(currentText, "MAX") then
-                -- print("max lvl")
+                print("max lvl")
                 deployUnit("Carrot:Evo")
             end
             
