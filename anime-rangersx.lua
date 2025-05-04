@@ -2,7 +2,6 @@ local player = game.Players.LocalPlayer
 local replicatedStorage = game:GetService("ReplicatedStorage")
 local deploymentRemote = replicatedStorage:WaitForChild("Remote"):WaitForChild("Server"):WaitForChild("Units"):WaitForChild("Deployment")
 
--- Function to deploy units
 local function deployUnit(unitName)
     local unitData = replicatedStorage:WaitForChild("Player_Data")
         :WaitForChild(player.Name)
@@ -17,7 +16,6 @@ local function deployUnit(unitName)
     end
 end
 
--- Saber spawning (runs continuously)
 task.spawn(function()
     while true do
         deployUnit("Saber")
@@ -25,15 +23,12 @@ task.spawn(function()
     end
 end)
 
--- Carrot:Evo level detection and spawning
 task.spawn(function()
-    -- Wait for the game to fully load
     task.wait(2)
     print("Starting carrot level detection...")
 
     local success, errorMsg = pcall(function()
         while true do
-            -- Check if the UnitsFolder exists
             if player:FindFirstChild("UnitsFolder") then
                 local carrotUnit = player.UnitsFolder:FindFirstChild("Carrot:Evo")
                 
@@ -43,7 +38,7 @@ task.spawn(function()
                     if levelValue and tonumber(levelValue.Value) >= 5 then
                         print("Carrot is level 5 - Deploying!")
                         deployUnit("Carrot:Evo")
-                        task.wait(1) -- Prevent spamming
+                        task.wait(1)
                     else
                         if levelValue then
                             print("Current carrot level:", levelValue.Value)
@@ -56,7 +51,7 @@ task.spawn(function()
                 print("Waiting for UnitsFolder...")
             end
             
-            task.wait(0.1) -- Check every 0.1 seconds
+            task.wait(0.1)
         end
     end)
     
