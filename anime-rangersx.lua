@@ -35,7 +35,7 @@ task.spawn(function()
                 if carrotUnit and carrotUnit:FindFirstChild("Upgrade_Folder") then
                     local levelValue = carrotUnit.Upgrade_Folder:FindFirstChild("Level")
                     
-                    if levelValue and tonumber(levelValue.Value) >= 5 then
+                    if levelValue and tonumber(levelValue.Value) >= 3 then
                         -- print("Carrot is level 5 - Deploying!")
                         deployUnit("Carrot:Evo")
                         task.wait(1)
