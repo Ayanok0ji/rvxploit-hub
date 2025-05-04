@@ -1,20 +1,23 @@
 local player = game.Players.LocalPlayer
 local replicatedStorage = game:GetService("ReplicatedStorage")
-local deploymentRemote = replicatedStorage:WaitForChild("Remote", 9e9):WaitForChild("Server", 9e9):WaitForChild("Units", 9e9):WaitForChild("Deployment", 9e9)
+local deploymentRemote = replicatedStorage:WaitForChild("Remote"):WaitForChild("Server"):WaitForChild("Units"):WaitForChild("Deployment")
 
+-- Function to deploy units
 local function deployUnit(unitName)
-    local unitData = replicatedStorage:WaitForChild("Player_Data", 9e9)
-        :WaitForChild(player.Name, 9e9)
-        :WaitForChild("Collection", 9e9)
-        :WaitForChild(unitName, 9e9)
+    local unitData = replicatedStorage:WaitForChild("Player_Data")
+        :WaitForChild(player.Name)
+        :WaitForChild("Collection")
+        :WaitForChild(unitName)
     
     if unitData then
         deploymentRemote:FireServer(unitData)
+        print("Deployed:", unitName)
     else
         warn("Unit data not found for:", unitName)
     end
 end
 
+-- Saber spawning (runs continuously)
 task.spawn(function()
     while true do
         deployUnit("Saber")
@@ -22,34 +25,38 @@ task.spawn(function()
     end
 end)
 
+-- Carrot:Evo level detection and spawning
 task.spawn(function()
-    task.wait(0.2)
-    
-    print("Starting carrot detection...")
-    
+    -- Wait for the game to fully load
+    task.wait(2)
+    print("Starting carrot level detection...")
+
     local success, errorMsg = pcall(function()
-        local hud = player:WaitForChild("PlayerGui", 9e9):WaitForChild("HUD", 9e9)
-        local unitsManager = hud:WaitForChild("InGame", 9e9):WaitForChild("UnitsManager", 9e9)
-            :WaitForChild("Main", 9e9):WaitForChild("Main", 9e9)
-            :WaitForChild("ScrollingFrame", 9e9)
-        
-        while not unitsManager:FindFirstChild("Carrot:Evo") do
-            task.wait(1)
-        end
-        
-        local carrotEvoText = unitsManager:WaitForChild("Carrot:Evo", 9e9):WaitForChild("UpgradeText", 9e9)
-        print("Carrot:Evo UI element found")
-        
         while true do
-            local currentText = carrotEvoText.Text
-            
-            if string.find(currentText, "%(MAX%)") then
-                print("Carrot is at MAX level - deploying...")
-                deployUnit("Carrot:Evo")
-                task.wait(1)
+            -- Check if the UnitsFolder exists
+            if player:FindFirstChild("UnitsFolder") then
+                local carrotUnit = player.UnitsFolder:FindFirstChild("Carrot:Evo")
+                
+                if carrotUnit and carrotUnit:FindFirstChild("Upgrade_Folder") then
+                    local levelValue = carrotUnit.Upgrade_Folder:FindFirstChild("Level")
+                    
+                    if levelValue and tonumber(levelValue.Value) >= 5 then
+                        print("Carrot is level 5 - Deploying!")
+                        deployUnit("Carrot:Evo")
+                        task.wait(1) -- Prevent spamming
+                    else
+                        if levelValue then
+                            print("Current carrot level:", levelValue.Value)
+                        end
+                    end
+                else
+                    print("Waiting for Carrot:Evo unit to exist...")
+                end
             else
-                task.wait(0.5)
+                print("Waiting for UnitsFolder...")
             end
+            
+            task.wait(0.1) -- Check every 0.1 seconds
         end
     end)
     
@@ -57,3 +64,5 @@ task.spawn(function()
         warn("Carrot detection failed:", errorMsg)
     end
 end)
+
+print("Auto-deploy script loaded successfully")
