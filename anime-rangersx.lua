@@ -19,6 +19,7 @@ end
 task.spawn(function()
     while true do
         deployUnit("Saber")
+        deployUnit("Songjinwuu:Evo")
         task.wait(0.2)
     end
 end)
