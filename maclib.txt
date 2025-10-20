@@ -1,12 +1,6 @@
 if _G.__RvxUI then return _G.__RvxUI end
 
-local RvxLib = {
-	Options = {}, 
-	Folder = "Rvxlib", 
-	GetService = function(service)
-		return cloneref and cloneref(game:GetService(service)) or game:GetService(service)
-	end
-}
+local RvxLib = {}
 
 --// Services
 local RunService 		= game:GetService("RunService")
@@ -38,7 +32,6 @@ local hasGlobalSetting
 local tabs = {}
 local currentTabInstance = nil
 local tabIndex = 0
-local unloaded = false
 
 --// Functions
 
@@ -1295,6 +1288,113 @@ do
 
 		function DropdownFunctions:SetVisibility(State)
 			dropdown.Visible = State
+		end
+
+		function DropdownFunctions:UpdateSelection(newSelection)
+			if not newSelection then return end
+
+			for option, _ in pairs(OptionObjs) do
+				Toggle(option, false)
+			end
+
+			local selectedOptions = {}
+			if type(newSelection) == "number" then
+				for option, data in pairs(OptionObjs) do
+					local isSelected = data.Index == newSelection
+					Toggle(option, isSelected)
+					if isSelected then
+						table.insert(selectedOptions, option)
+					end
+				end
+			elseif type(newSelection) == "string" then
+				for option, data in pairs(OptionObjs) do
+					local isSelected = option == newSelection
+					Toggle(option, isSelected)
+					if isSelected then
+						table.insert(selectedOptions, option)
+					end
+				end
+			elseif type(newSelection) == "table" then
+				for option, _ in pairs(OptionObjs) do
+					local isSelected = table.find(newSelection, option) ~= nil
+					Toggle(option, isSelected)
+					if isSelected then
+						table.insert(selectedOptions, option)
+					end
+				end
+			end
+
+			if DropdownFunctions.Settings.Callback then
+				if DropdownFunctions.Settings.Multi then
+					local Return = {}
+					for _, opt in ipairs(selectedOptions) do
+						Return[opt] = true
+					end
+					DropdownFunctions.Settings.Callback(Return)
+				else
+					DropdownFunctions.Settings.Callback(selectedOptions[1] or nil)
+				end
+			end
+		end
+
+		function DropdownFunctions:InsertOptions(newOptions)
+			if not newOptions then return end
+			DropdownFunctions.Settings.Options = newOptions
+			for i, v in pairs(newOptions) do
+				addOption(i, v)
+			end
+		end
+		function DropdownFunctions:ClearOptions()
+			for _, optionData in pairs(OptionObjs) do
+				optionData.Button:Destroy()
+			end
+			OptionObjs = {}
+			Selected = {}
+
+			if dropped then
+				dropdown.Size = UDim2.new(1, 0, 0, CalculateDropdownSize())
+			end
+		end
+		function DropdownFunctions:GetOptions()
+			local optionsStatus = {}
+
+			for option, data in pairs(OptionObjs) do
+				local isSelected = table.find(Selected, option) and true or false
+				optionsStatus[option] = isSelected
+			end
+
+			return optionsStatus
+		end
+
+		function DropdownFunctions:RemoveOptions(remove)
+			if not remove then return end
+			for _, optionName in ipairs(remove) do
+				local optionData = OptionObjs[optionName]
+
+				if optionData then
+					for i = #Selected, 1, -1 do
+						if Selected[i] == optionName then
+							table.remove(Selected, i)
+						end
+					end
+
+					optionData.Button:Destroy()
+
+					OptionObjs[optionName] = nil
+				end
+			end
+
+			if dropped then
+				dropdown.Size = UDim2.new(1, 0, 0, CalculateDropdownSize())
+			end
+		end
+		function DropdownFunctions:IsOption(optionName)
+			if not optionName then return end
+			return OptionObjs[optionName] ~= nil
+		end
+
+		if Flag then
+			RvxLib.Options[Flag] = DropdownFunctions
 		end
 
 		function DropdownFunctions:SetCallback(Callback_Func)
@@ -4557,20 +4657,6 @@ function RvxLib:Window(Settings)
 		return windowState
 	end
 
-	local onUnloadCallback
-
-	function WindowFunctions:Unload()
-		if onUnloadCallback then
-			onUnloadCallback()  
-		end
-		rvxLib:Destroy()
-		unloaded = true
-	end
-
-	function WindowFunctions.onUnloaded(callback)
-		onUnloadCallback = callback
-	end
-
 	function WindowFunctions:SetKeybind(Keycode)
 		MenuKeybind = Keycode
 	end
@@ -4589,29 +4675,6 @@ function RvxLib:Window(Settings)
 	end
 	function WindowFunctions:GetSize(Size)
 		return base.Size
-	end
-
-	local function BuildFolderTree()
-		if isStudio or not (isfolder and makefolder) then return "Config system unavailable." end
-
-		local paths = {
-			RvxLib.Folder,
-			RvxLib.Folder .. "/settings"
-		}
-
-		for i = 1, #paths do
-			local str = paths[i]
-			if not isfolder(str) then
-				makefolder(str)
-			end
-		end
-	end
-
-	function RvxLib:SetFolder(Folder)
-		if isStudio then return "Config system unavailable." end
-
-		RvxLib.Folder = Folder;
-		BuildFolderTree()
 	end
 
 	windowState = true
@@ -4948,12 +5011,6 @@ function RvxLib:Demo()
 	sections.MainSection1:SubLabel({
 		Text = "Sub-Label. Lorem ipsum odor amet, consectetuer adipiscing elit."
 	})
-
-	RvxLib:SetFolder("RvxLib")
-
-	Window.onUnloaded(function()
-		print("Unloaded!")
-	end)
 
 	tabs.Main:Select()
 end
