@@ -1407,6 +1407,7 @@ do
 
 			return DropdownFunctions
 		end
+	end
 
 	function Funcs:Header(Settings)
 		Settings = Defaults({
