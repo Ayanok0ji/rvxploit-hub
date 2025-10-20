@@ -1009,19 +1009,14 @@ do
 
 			local function findOption()
 				local searchTerm = searchBox.Text:lower()
-
 				for _, v in pairs(OptionObjs) do
 					local optionText = v.NameLabel.Text:lower()
 					local isVisible = string.find(optionText, searchTerm) ~= nil
-
-					if v.Button.Visible ~= isVisible then
-						v.Button.Visible = isVisible
-					end
+					v.Button.Visible = isVisible
 				end
 			end
 
 			searchBox:GetPropertyChangedSignal("Text"):Connect(findOption)
-
 
 			local uIPadding1 = Instance.new("UIPadding")
 			uIPadding1.Name = "UIPadding"
@@ -1042,7 +1037,6 @@ do
 
 			local function Toggle(optionName, State)
 				local option = OptionObjs[optionName]
-
 				if not option then return end
 
 				local checkmark = option.Checkmark
@@ -1056,14 +1050,14 @@ do
 					else
 						for name, opt in pairs(OptionObjs) do
 							if name ~= optionName then
-								opt.Checkmark.Size = UDim2.new(opt.Checkmark.Size.X.Scale, tweensettings.checkSizeDecrease, opt.Checkmark.Size.Y.Scale, opt.Checkmark.Size.Y.Offset)
+								opt.Checkmark.Size = UDim2.new(0, tweensettings.checkSizeDecrease, 0, 0)
 								opt.NameLabel.TextTransparency = tweensettings.transparencyOut
 								opt.Checkmark.TextTransparency = 1
 							end
 						end
 						Selected = {optionName}
 					end
-					checkmark.Size = UDim2.new(checkmark.Size.X.Scale, tweensettings.checkSizeIncrease, checkmark.Size.Y.Scale, checkmark.Size.Y.Offset)
+					checkmark.Size = UDim2.new(0, tweensettings.checkSizeIncrease, 0, 0)
 					optionNameLabel.TextTransparency = tweensettings.transparencyIn
 					checkmark.TextTransparency = 0
 				else
@@ -1075,10 +1069,8 @@ do
 					else
 						Selected = {}
 					end
-
-					checkmark.Size = UDim2.new(checkmark.Size.X.Scale, tweensettings.checkSizeDecrease, checkmark.Size.Y.Scale, checkmark.Size.Y.Offset)
+					checkmark.Size = UDim2.new(0, tweensettings.checkSizeDecrease, 0, 0)
 					optionNameLabel.TextTransparency = tweensettings.transparencyOut
-
 					checkmark.TextTransparency = 1
 				end
 
@@ -1087,9 +1079,10 @@ do
 				end
 
 				ResetName()
+				_dropdown_callback(Settings.Multi and Selected or Selected[1] or nil)
 			end
 
-			for i, v in pairs(Settings.Options) do
+			for i, v in ipairs(Settings.Options) do
 				local option = Instance.new("TextButton")
 				option.Name = "Option"
 				option.FontFace = Font.new("rbxasset://fonts/families/SourceSansPro.json")
@@ -1131,7 +1124,7 @@ do
 				optionName.BackgroundTransparency = 1
 				optionName.BorderColor3 = Color3.fromRGB(0, 0, 0)
 				optionName.BorderSizePixel = 0
-				optionName.Position = UDim2.fromScale(1.3e-07, 0.5)
+				optionName.Position = UDim2.fromScale(0, 0.5)
 				optionName.Parent = option
 
 				local optionUIListLayout = Instance.new("UIListLayout")
@@ -1162,13 +1155,12 @@ do
 				checkmark.BorderColor3 = Color3.fromRGB(0, 0, 0)
 				checkmark.BorderSizePixel = 0
 				checkmark.LayoutOrder = -1
-				checkmark.Position = UDim2.fromScale(1.3e-07, 0.5)
+				checkmark.Position = UDim2.fromScale(0, 0.5)
 				checkmark.Size = UDim2.fromOffset(-13, 0)
 				checkmark.Parent = option
 
 				option.Parent = dropdownFrame
 
-				dropdownFrame.Parent = dropdown
 				OptionObjs[v] = {
 					Index = i,
 					Button = option,
@@ -1182,276 +1174,239 @@ do
 				dropdownUIPadding.PaddingRight = UDim.new(0, 15)
 				dropdownUIPadding.Parent = dropdown
 
-				local tweensettings = {
-					duration = 0.2,
-					easingStyle = Enum.EasingStyle.Quint,
-					transparencyIn = 0.2,
-					transparencyOut = 0.5,
-					checkSizeIncrease = 12,
-					checkSizeDecrease = -optionUIListLayout.Padding.Offset,
-					waitTime = 1
-				}
-
 				local isSelected = false
 				if Settings.Default then
 					if Settings.Multi then
-						isSelected = (table.find(Settings.Default, v) or Settings.Default[v] == true) and true or false
+						isSelected = table.find(Settings.Default, v) ~= nil
 					else
-						isSelected = (Settings.Default == i or Settings.Default == v) and true or false
+						isSelected = (Settings.Default == i or Settings.Default == v)
 					end
-				end
-				local option = OptionObjs[v].Button
-
-				local function tog_gle()
-					local isSelecteds = table.find(Selected, v) and true or false;
-
-					local newSelected = not isSelecteds
-
-					if Settings.Required and not newSelected and #Selected <= 1 then
-						return
-					end
-
-					Toggle(v, newSelected)
-
-					task.spawn(function()
-						if Settings.Multi then
-							local Return = {}
-							for _, opt in ipairs(Selected) do
-								Return[opt] = true
-							end
-							_dropdown_callback(Return)
-							--Settings.Callback(Return)
-						else
-							if newSelected then
-								_dropdown_callback(Selected[1] or "")
-							else
-								_dropdown_callback("")
-								--Settings.Callback(Selected[1] or nil)
-							end
-						end
-					end)
-				end
-
-				OptionObjs[v].Toggle = function()
-					task.spawn(tog_gle)
 				end
 
 				if isSelected then
-					Toggle(v, isSelected)
+					Toggle(v, true)
 				end
 
-				option.MouseButton1Click:Connect(tog_gle)
+				option.MouseButton1Click:Connect(function()
+					local isSelected = table.find(Selected, v) ~= nil
+					Toggle(v, not isSelected)
+				end)
 
+				OptionObjs[v].Toggle = function(state)
+					Toggle(v, state)
+				end
+			end
+
+			local function CalculateDropdownSize()
+				local count = 0
+				for _, v in pairs(dropdownFrame:GetChildren()) do
+					if v:IsA("GuiObject") and v.Visible then count += 1 end
+				end
+				if count == 0 then
+					count = 1
+				end
+				local calculationVals = {
+					[1] = dropdown.AbsoluteSize.Y,
+					[2] = dropdownFrameUIPadding.PaddingTop.Offset - dropdownFrameUIPadding.PaddingBottom.Offset,
+					[3] = 34 * count
+				}
+				return calculationVals[1] + calculationVals[2] + calculationVals[3]
+			end
+
+			local dropped = false
+			local function ToggleDropdown()
+				local defaultDropdownSize = 38
+				local isDropdownOpen = not dropped
+				local targetSize = isDropdownOpen and UDim2.new(1, 0, 0, CalculateDropdownSize()) or UDim2.new(1, 0, 0, defaultDropdownSize)
+
+				dropdown.Size = targetSize
+				dropdownFrame.Visible = isDropdownOpen
+				dropped = isDropdownOpen
+			end
+
+			interact.MouseButton1Click:Connect(ToggleDropdown)
+
+			function DropdownFunctions:UpdateName(New)
+				dropdownName.Text = tostring(New)
+				Settings.Name = New
 				ResetName()
 			end
-		end
 
-
-		local function CalculateDropdownSize()
-			local count = 0
-			for _,v in pairs(dropdownFrame:GetChildren()) do
-				if v:IsA("GuiObject") and v.Visible then count += 1 end
-			end
-			if count == 0 then
-				count = 1
-			end
-			local calculationVals = {
-				[1] = dropdown.AbsoluteSize.Y,
-				[2] = dropdownFrameUIPadding.PaddingTop.Offset - dropdownFrameUIPadding.PaddingBottom.Offset,
-				[3] = 34 * count
-			}
-			return calculationVals[1] + calculationVals[2] + calculationVals[3]
-		end
-
-		local dropped = false
-		local function ToggleDropdown()
-			local defaultDropdownSize = 38
-			local isDropdownOpen = not dropped
-			local targetSize = isDropdownOpen and UDim2.new(1, 0, 0, CalculateDropdownSize()) or UDim2.new(1, 0, 0, defaultDropdownSize)
-
-			dropdown.Size = targetSize
-
-			if isDropdownOpen then
-				dropdownFrame.Visible = true
-			else
-				dropdownFrame.Visible = false
+			function DropdownFunctions:SetVisibility(State)
+				dropdown.Visible = State
 			end
 
-			dropped = isDropdownOpen
-		end
+			function DropdownFunctions:UpdateSelection(newSelection)
+				if not newSelection then return end
 
-		interact.MouseButton1Click:Connect(ToggleDropdown)
-
-		function DropdownFunctions:UpdateName(New)
-			dropdownName.Text = tostring(New)
-		end
-
-		function DropdownFunctions:SetVisibility(State)
-			dropdown.Visible = State
-		end
-
-		function DropdownFunctions:UpdateSelection(newSelection)
-			if not newSelection then return end
-
-			for option, _ in pairs(OptionObjs) do
-				Toggle(option, false)
-			end
-
-			local selectedOptions = {}
-			if type(newSelection) == "number" then
-				for option, data in pairs(OptionObjs) do
-					local isSelected = data.Index == newSelection
-					Toggle(option, isSelected)
-					if isSelected then
-						table.insert(selectedOptions, option)
-					end
-				end
-			elseif type(newSelection) == "string" then
-				for option, data in pairs(OptionObjs) do
-					local isSelected = option == newSelection
-					Toggle(option, isSelected)
-					if isSelected then
-						table.insert(selectedOptions, option)
-					end
-				end
-			elseif type(newSelection) == "table" then
 				for option, _ in pairs(OptionObjs) do
-					local isSelected = table.find(newSelection, option) ~= nil
-					Toggle(option, isSelected)
-					if isSelected then
-						table.insert(selectedOptions, option)
-					end
+					Toggle(option, false)
 				end
-			end
+				Selected = {}
 
-			if DropdownFunctions.Settings.Callback then
-				if DropdownFunctions.Settings.Multi then
-					local Return = {}
-					for _, opt in ipairs(selectedOptions) do
-						Return[opt] = true
-					end
-					DropdownFunctions.Settings.Callback(Return)
-				else
-					DropdownFunctions.Settings.Callback(selectedOptions[1] or nil)
-				end
-			end
-		end
-
-		function DropdownFunctions:InsertOptions(newOptions)
-			if not newOptions then return end
-			DropdownFunctions.Settings.Options = newOptions
-			for i, v in pairs(newOptions) do
-				addOption(i, v)
-			end
-		end
-		function DropdownFunctions:ClearOptions()
-			for _, optionData in pairs(OptionObjs) do
-				optionData.Button:Destroy()
-			end
-			OptionObjs = {}
-			Selected = {}
-
-			if dropped then
-				dropdown.Size = UDim2.new(1, 0, 0, CalculateDropdownSize())
-			end
-		end
-		function DropdownFunctions:GetOptions()
-			local optionsStatus = {}
-
-			for option, data in pairs(OptionObjs) do
-				local isSelected = table.find(Selected, option) and true or false
-				optionsStatus[option] = isSelected
-			end
-
-			return optionsStatus
-		end
-
-		function DropdownFunctions:RemoveOptions(remove)
-			if not remove then return end
-			for _, optionName in ipairs(remove) do
-				local optionData = OptionObjs[optionName]
-
-				if optionData then
-					for i = #Selected, 1, -1 do
-						if Selected[i] == optionName then
-							table.remove(Selected, i)
+				local selectedOptions = {}
+				if type(newSelection) == "number" then
+					for option, data in pairs(OptionObjs) do
+						local isSelected = data.Index == newSelection
+						if isSelected then
+							Toggle(option, true)
+							table.insert(selectedOptions, option)
 						end
 					end
+				elseif type(newSelection) == "string" then
+					if OptionObjs[newSelection] then
+						Toggle(newSelection, true)
+						table.insert(selectedOptions, newSelection)
+					end
+				elseif type(newSelection) == "table" then
+					for _, option in ipairs(newSelection) do
+						if OptionObjs[option] then
+							Toggle(option, true)
+							table.insert(selectedOptions, option)
+						end
+					end
+				end
 
+				if Settings.Required and #selectedOptions == 0 then
+					return
+				end
+
+				ResetName()
+				_dropdown_callback(Settings.Multi and selectedOptions or selectedOptions[1] or nil)
+			end
+
+			function DropdownFunctions:InsertOptions(newOptions)
+				if not newOptions or type(newOptions) ~= "table" then return end
+				for i, v in ipairs(newOptions) do
+					if not table.find(Settings.Options, v) then
+						table.insert(Settings.Options, v)
+					end
+				end
+				UpdateDropdown()
+				ResetName()
+			end
+
+			function DropdownFunctions:ClearOptions()
+				for _, optionData in pairs(OptionObjs) do
 					optionData.Button:Destroy()
+				end
+				OptionObjs = {}
+				Selected = {}
+				Settings.Options = {}
+				UpdateDropdown()
+				ResetName()
+			end
 
-					OptionObjs[optionName] = nil
+			function DropdownFunctions:GetOptions()
+				local optionsStatus = {}
+				for option, _ in pairs(OptionObjs) do
+					optionsStatus[option] = table.find(Selected, option) ~= nil
+				end
+				return optionsStatus
+			end
+
+			function DropdownFunctions:RemoveOptions(remove)
+				if not remove or type(remove) ~= "table" then return end
+				for _, optionName in ipairs(remove) do
+					if OptionObjs[optionName] then
+						for i = #Selected, 1, -1 do
+							if Selected[i] == optionName then
+								table.remove(Selected, i)
+							end
+						end
+						OptionObjs[optionName].Button:Destroy()
+						OptionObjs[optionName] = nil
+						for i, opt in ipairs(Settings.Options) do
+							if opt == optionName then
+								table.remove(Settings.Options, i)
+								break
+							end
+						end
+					end
+				end
+				UpdateDropdown()
+				ResetName()
+			end
+
+			function DropdownFunctions:IsOption(optionName)
+				return OptionObjs[optionName] ~= nil
+			end
+
+			function DropdownFunctions:SetCallback(Callback_Func)
+				if typeof(Callback_Func) == "function" then
+					_dropdown_callback = Callback_Func
 				end
 			end
 
-			if dropped then
-				dropdown.Size = UDim2.new(1, 0, 0, CalculateDropdownSize())
-			end
-		end
-		function DropdownFunctions:IsOption(optionName)
-			if not optionName then return end
-			return OptionObjs[optionName] ~= nil
-		end
-
-		if Flag then
-			RvxLib.Options[Flag] = DropdownFunctions
-		end
-
-		function DropdownFunctions:SetCallback(Callback_Func)
-			if typeof(Callback_Func) == "function" then
-				_dropdown_callback = Callback_Func
-			end
-		end
-
-		function DropdownFunctions:SetDropdown(Selection)
-			Settings.Options = Selection
-			local newSelected = {}
-			for i,v in pairs(Selected) do
-				if table.find(Settings.Options, v) then				
-					table.insert(newSelected, v)
+			function DropdownFunctions:SetDropdown(newOptions)
+				if not newOptions or type(newOptions) ~= "table" then return end
+				Settings.Options = newOptions
+				for _, option in pairs(OptionObjs) do
+					option.Button:Destroy()
 				end
+				OptionObjs = {}
+				Selected = {}
+				if Settings.Default then
+					if Settings.Multi then
+						for _, v in ipairs(Settings.Default) do
+							if table.find(newOptions, v) then
+								table.insert(Selected, v)
+							end
+						end
+					else
+						if table.find(newOptions, Settings.Default) then
+							Selected = {Settings.Default}
+						end
+					end
+				end
+				UpdateDropdown()
+				ResetName()
+				_dropdown_callback(Settings.Multi and Selected or Selected[1] or nil)
 			end
-			Selected = newSelected
-			if Settings.Multi then
-				Settings.Default = newSelected
-			else
-				Settings.Default = Selected[1]
+
+			function DropdownFunctions:Set(Value)
+				if not Value then return end
+				if Settings.Multi then
+					if type(Value) == "table" then
+						for _, v in ipairs(Value) do
+							if OptionObjs[v] and not table.find(Selected, v) then
+								Toggle(v, true)
+							end
+						end
+					elseif type(Value) == "string" and OptionObjs[Value] then
+						Toggle(Value, true)
+					end
+				else
+					if type(Value) == "string" and OptionObjs[Value] then
+						for _, v in ipairs(Selected) do
+							Toggle(v, false)
+						end
+						Toggle(Value, true)
+					elseif type(Value) == "number" then
+						for option, data in pairs(OptionObjs) do
+							if data.Index == Value then
+								for _, v in ipairs(Selected) do
+									Toggle(v, false)
+								end
+								Toggle(option, true)
+								break
+							end
+						end
+					end
+				end
+				ResetName()
 			end
+
+			DropdownFunctions.Settings = Settings
+			if Flag then
+				RvxLib.Options[Flag] = DropdownFunctions
+			end
+
 			UpdateDropdown()
+			ResetName()
+
+			return DropdownFunctions
 		end
-
-		function DropdownFunctions:Set(Value)
-			if Settings.Multi then
-				if typeof(Value) == "table" then
-					for xz,zx in pairs(Value) do
-						if not table.find(Selected, zx) then
-							if OptionObjs[zx] then
-								OptionObjs[zx].Toggle()
-							end
-						end
-					end
-				end
-			else
-				if not table.find(Selected, Value) then
-					if #Selected >= 1 then
-						for xz, zx in pairs(OptionObjs) do
-							if xz ~= Value then
-								zx.Toggle()
-							end
-						end
-					end
-					if OptionObjs[Value] then
-						OptionObjs[Value].Toggle()
-					end
-				end
-			end
-		end
-
-		UpdateDropdown()
-		ResetName()
-
-		return DropdownFunctions
-	end
 
 	function Funcs:Header(Settings)
 		Settings = Defaults({
