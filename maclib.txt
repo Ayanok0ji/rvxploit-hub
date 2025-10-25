@@ -116,12 +116,6 @@ function MacLib:Window(Settings)
 	local baseUIScale = Instance.new("UIScale")
 	baseUIScale.Name = "BaseUIScale"
 	baseUIScale.Parent = base
-	baseUIScale.Scale = 1
-	MacLib.scale = baseUIScale
-
-	if Settings.Scale ~= nil and tonumber(Settings.Scale) then
-		baseUIScale.Scale = tonumber(Settings.Scale)
-	end
 
 	local baseUICorner = Instance.new("UICorner")
 	baseUICorner.Name = "BaseUICorner"
@@ -5370,10 +5364,11 @@ function MacLib:Window(Settings)
 		return base.Size
 	end
 
-	function WindowFunctions:SetScale(Size)
-		if tonumber(Size) then
-			baseUIScale.Scale = tonumber(Size)
-		end
+	function WindowFunctions:SetScale(Scale)
+		baseUIScale.Scale = Scale
+	end
+	function WindowFunctions:GetScale()
+		return baseUIScale.Scale
 	end
 
 	local ClassParser = {
@@ -5986,4 +5981,3 @@ function MacLib:Demo()
 end
 
 return MacLib
-
