@@ -116,6 +116,8 @@ function MacLib:Window(Settings)
 	local baseUIScale = Instance.new("UIScale")
 	baseUIScale.Name = "BaseUIScale"
 	baseUIScale.Parent = base
+    baseUIScale.Scale = 1
+    MacLib.scale = baseUIScale
 
 	local baseUICorner = Instance.new("UICorner")
 	baseUICorner.Name = "BaseUICorner"
@@ -5981,3 +5983,4 @@ function MacLib:Demo()
 end
 
 return MacLib
+
